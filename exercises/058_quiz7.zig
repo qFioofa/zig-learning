@@ -192,8 +192,8 @@ const TripItem = union(enum) {
             // Oops! The hermit forgot how to capture the union values
             // in a switch statement. Please capture each value as
             // 'p' so the print statements work!
-            .place => print("{s}", .{p.name}),
-            .path => print("--{}->", .{p.dist}),
+            .place => |p| print("{s}", .{p.name}),
+            .path => |p| print("--{}->", .{p.dist}),
         }
     }
 };
@@ -289,9 +289,9 @@ const HermitsNotebook = struct {
         return self.next_entry < self.end_of_entries;
     }
 
-    fn getNextEntry(self: *HermitsNotebook) *const NotebookEntry {
+    fn getNextEntry(self: *HermitsNotebook) !*const NotebookEntry {
         defer self.next_entry += 1; // Increment after getting entry
-        return &self.entries[self.next_entry].?;
+        return &self.entries[self.next_entry] orelse return TripError.Unreachable;
     }
 
     // After we've completed our search of the map, we'll have
@@ -309,18 +309,16 @@ const HermitsNotebook = struct {
     //
     // Looks like the hermit forgot something in the return value of
     // this function. What could that be?
-    fn getTripTo(self: *HermitsNotebook, trip: []?TripItem, dest: *Place) void {
+    fn getTripTo(self: *HermitsNotebook, trip: []?TripItem, dest: *Place) !void {
         // We start at the destination entry.
-        const destination_entry = self.getEntry(dest);
+        const destination_entry = self.getEntry(dest) orelse return TripError.Unreachable;
 
         // This function needs to return an error if the requested
         // destination was never reached. (This can't actually happen
         // in our map since every Place is reachable by every other
         // Place.)
-        if (destination_entry == null) {
-            return TripError.Unreachable;
-        }
-
+        //
+        //
         // Variables hold the entry we're currently examining and an
         // index to keep track of where we're appending trip items.
         var current_entry = destination_entry.?;
