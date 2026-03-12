@@ -49,6 +49,7 @@ pub fn main() void {
     // Additional Hint: you can assign things to '_' when you
     // don't intend to do anything with them.
     foo();
+    foo();
 }
 
 fn foo() void {
